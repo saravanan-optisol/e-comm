@@ -3,6 +3,7 @@ import db from './models/'
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+//init middleware
 app.use(express.json());
 
 //routes
@@ -15,5 +16,5 @@ db.sequelize
     app.listen(PORT, () => console.log('server running....'));
   })
   .catch((err: any) => {
-    console.log('err sequel: ' + err);
+    console.log('connection  error: ' + err);
   });
