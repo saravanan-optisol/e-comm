@@ -1,17 +1,18 @@
 import sm from 'nodemailer'
+import config from '../config/config'
 
 const mail = {
     otpMail: (email: String, otp: Number)=>{
         const transport = sm.createTransport({
             service: 'gmail',
             auth: {
-                user: 'verify.upi@gmail.com',
-                pass: 'upipwd01'
+                user: config.mailid,
+                pass: config.mailpwd
             }
         })
 
         const msg: Object = {
-            from : 'verify.upi@gmail.com',
+            from : config.mailid,
             to: email,
             subject: 'your OTP for forgot password',
             html: `
