@@ -1,6 +1,7 @@
 import { Request } from "express"
 import  {check, validationResult} from 'express-validator'
 
+// validate the every routes
 exports.resultValidator = (req: Request) =>{
     const messages = []
     if(!validationResult(req).isEmpty()){
@@ -12,6 +13,7 @@ exports.resultValidator = (req: Request) =>{
     return messages;
 }
 
+// Register Validator
 exports.registerValidator = () =>{
     return[
         check('username', 'username is required').not().isEmpty(),
@@ -20,6 +22,7 @@ exports.registerValidator = () =>{
     ]
 }
 
+// Login Validator
 exports.loginValidator = () =>{
     return[
         check('credential', 'username or email is required').not().isEmpty(),
@@ -27,12 +30,14 @@ exports.loginValidator = () =>{
     ]
 }
 
+// Forgot password Validator
 exports.fpValidator = () =>{
     return[
         check('credential', 'username or email is required').not().isEmpty(),
     ]
 }
 
+// Reset Password validator
 exports.rpValidator = () =>{
     return[
         check('credential', 'credential is required').not().isEmpty(),

@@ -4,8 +4,7 @@ import config from './config/config';
 import db from './config/dbconnection'
 require('./config/express')(app, config);
 
-app.get('/', (req: Request, res: Response) => res.send('hello'))
-
+//sequelize connection and server
 db.sync().then(() =>{
     app.listen(config.port, () => {
         console.log(`Server running on ${config.port}`);
