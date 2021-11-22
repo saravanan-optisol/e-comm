@@ -12,7 +12,7 @@ const config: any = {
             logging: false
         },
         mailid: 'verify.upi@gmail.com',
-        mailpwd: 'upipwd01',
+        mailpwd: '',
         options : {
             definition: {
                 openapi: '3.0.0',
