@@ -1,15 +1,16 @@
 import { DataTypes, Model } from "sequelize";
 import db from '../config/dbconnection'
-
+import Product from "./product.model";
 export interface userInterface {
-    id? : Number,
     user_id?: number;
     username: string,
     email: string,
     password: string,
+    role_id: Number,
     otp?: any,
     address?: string,
     mobile?: string,
+    is_delete?: number
   }
   export default class User extends Model<userInterface> {
     [x: string]: any
@@ -35,6 +36,10 @@ export interface userInterface {
         type: DataTypes.STRING,
         unique: true,
       },
+      role_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
       otp: {
         type: DataTypes.INTEGER
       },
@@ -44,12 +49,20 @@ export interface userInterface {
       mobile: {
         type: DataTypes.INTEGER,
       },
+      is_delete: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+      },
     },
     {
       sequelize: db,
-      tableName: "user",
+      tableName: "users",
     });
 
 User.addScope('withoutPassword', {
-  attributes: { exclude: ['password'] }
+  attributes: { exclude: ['password', 'otp'] }
+})
+
+User.addScope('getOTP', {
+  attributes:{exclude: ['password']}
 })

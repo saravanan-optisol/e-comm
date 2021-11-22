@@ -12,4 +12,6 @@ module.exports = (app: any, config: any) =>{
     //routes
     app.use('/auth', require('../routes/auth'));
     app.use('/user', require('../routes/user'));
+    app.use('/product', require('../routes/product'));
+    app.use('/cart', require('../routes/cart'));
 }

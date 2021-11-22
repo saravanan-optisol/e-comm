@@ -15,26 +15,23 @@ let auth: any = {
     //req params check
     const errors = resultValidator(req)
     if(errors.length > 0){
-        return res.status(400).json({ 
-        method: req.method,
-        status: res.statusCode,
-        error: errors
-        })
+      return failurehandler(res, req.method, 400, errors);
     }
     const {credential, password} = req.body;
     
-    //check the credential is username or email
-    let user;
-    if(credential.indexOf('@') === -1){
-        user = await User.findOne({ where: { username: credential },raw: true});
-    }else{
-        user = await User.findOne({ where: { email: credential },raw: true});
-    }
-
-    //check the user exists or not
-    if(user === null){
-        return res.status(400).json({msg: 'username of email not exists'});
-    }
+    try {
+      //check the credential is username or email
+      let user;
+      if(credential.indexOf('@') === -1){
+          user = await User.findOne({ where: { username: credential },raw: true});
+      }else{
+          user = await User.findOne({ where: { email: credential },raw: true});
+      }
+  
+      //check the user exists or not
+      if(user === null){
+          return res.status(400).json({msg: 'username of email not exists'});
+      }
 
     //password validation
     // const pwd = user.map((user: any) => {return user.password})
@@ -63,10 +60,35 @@ let auth: any = {
       { expiresIn: 360000 },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        successhandler(res, req.method, 200, token)
       }
     ); 
+    } catch (err) {
+      console.log(err);
+      failurehandler(res, req.method, 500, 'server Error - ' + err)
+    }
   }
+}
+
+
+let successhandler = (res: Response, method: String, statusCode: any, data: any) =>{
+  console.log('success')
+  res.status(statusCode).json({ 
+      method: method,
+      status: "success",
+      statusCode: statusCode,
+      payload: data
+  })
+}
+
+let failurehandler = (res: Response, method: String, statusCode: any, data: any) =>{
+  console.log('failure')
+  res.status(statusCode).json({ 
+      method: method,
+      status: "failed",
+      statusCode: statusCode,
+      msg: data
+  })
 }
 
 export default auth;

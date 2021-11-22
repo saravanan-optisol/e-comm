@@ -3,6 +3,7 @@ import config from '../config/config'
 
 const mail = {
     otpMail: (email: String, otp: Number)=>{
+console.log(config.mailid, config.mailpwd)
         const transport = sm.createTransport({
             service: 'gmail',
             auth: {

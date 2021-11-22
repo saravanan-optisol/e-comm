@@ -11,6 +11,8 @@ const config: any = {
             dialect: "mysql",
             logging: false
         },
+        mailid: 'verify.upi@gmail.com',
+        mailpwd: 'upipwd01',
         options : {
             definition: {
                 openapi: '3.0.0',
@@ -25,7 +27,8 @@ const config: any = {
                     }
                 ],
             }, 
-            apis: ['../routes/*.ts']
+            apis: ['app.ts']
+            // apis: ['../routes/*.ts']
         }
     }
 }
