@@ -19,7 +19,7 @@ exports.registerValidator = () =>{
         check('username', 'username is required').not().isEmpty(),
         check('email', 'email is required').isEmail(),
         check('password', 'enter valid password').isLength({min: 6}),
-        check('role_id', 'role_id is required').not().isEmpty(),
+        check('role_id', 'role_id is required').not().notEmpty(),
     ]
 }
 
@@ -65,5 +65,13 @@ exports.npValidator = () =>{
 exports.acValidator = () =>{
     return[
         check('quantity', 'quantity is required').not().isEmpty(),
+    ]
+}
+
+// Add review validator
+exports.reviewValidator = () =>{
+    return[
+        check('rating', 'credential is required').not().isEmpty(),
+        check('comment', 'new password is required').not(),
     ]
 }

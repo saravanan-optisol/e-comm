@@ -1,0 +1,412 @@
+openapi: 3.0.0
+info:
+  title: 'Sample API'
+  description: "e-comm application"
+  version: 1.1.1
+servers:
+  - url: http://localhost:5000
+
+tags:
+- name: "User"
+  description: "user account features"
+  externalDocs:
+    description: "user amd seller can access this"
+    url: "http://localhost:5000/user"
+- name: "Product"
+  description: "Product features"
+  externalDocs:
+    description: "product routes"
+    url: "http://localhost:5000/product"
+- name: "Review"
+  description: "Review features"
+  externalDocs:
+    description: "product routes"
+    url: "http://localhost:5000/review"
+paths:
+  /user/register:
+    post:
+      tags: 
+      - 'User'
+      summary: Get a user by ID
+      description: 'for create user account'
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              type: object
+              properties:
+                username: 
+                  type: string
+                  example: 'sk'
+                email:
+                  type: string
+                  example: 'sk@gmail.com'
+                password: 
+                  type: string
+                  example: 'pwdpwd'
+                role_id: 
+                  type: integer
+                  example: 1
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'
+  /auth/login:
+    post:
+      tags:
+      - "User"
+      summary: Get a user by ID
+      description: 'login user account'
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              type: object
+              properties:
+                credential:
+                  type: string
+                  example: 'sk@gmail.com'
+                password: 
+                  type: string
+                  example: 'pwdpwd'
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'
+
+  /user/getuser:
+    get:
+      tags: 
+      - 'User'
+      summary: Get a user by ID
+      description: 'get user Details by token' 
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'  
+
+  /user/forgotpassword:
+    put:
+      tags: 
+      - 'User'
+      summary: forgot the user password
+      description: forgot password
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              type: object
+              properties:
+                credential:
+                  type: string
+                  example: 'sk@gmail.com'
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'  
+
+  /user/resetpassword:
+    put:
+      tags: 
+      - 'User'
+      summary: reset the user password
+      description: forgot password
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              type: object
+              properties:
+                credential:
+                  type: string
+                  example: 'sk@gmail.com'
+                otp:
+                  type: integer
+                  example: 6548
+                newpassword:
+                  type: string
+                  example: 'sdfdssaom'
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'    
+      
+  /user/updateprofile:
+    put:
+      tags: 
+      - 'User'
+      summary: update Profile
+      description: update the user profile
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              type: object
+              properties:
+                username: 
+                  type: string
+                  example: 'sk'
+                email:
+                  type: string
+                  example: 'sk@gmail.com'
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'  
+
+  /user/all:
+    get:
+      tags: 
+      - 'User'
+      summary: get all user 
+      description: Its a private route, admin only can access this
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request' 
+
+  /product/new:
+      post:
+        tags:
+          - 'Product'
+        summary: add product
+        description: 'add new product by seller'
+        parameters:
+          - name: x-auth-token
+            in: header
+            schema:
+              type: string
+              required: true
+        requestBody:
+          content:
+            application/json: 
+              schema: 
+                type: object
+                properties:
+                  product_name:
+                    type: string
+                    example: 'asdfdsfd'
+                  no_of_items:
+                    type: integer
+                    example: 2011
+                  title:
+                    type: string
+                    example: 'sdfdssaom'
+                  description:
+                    type: string
+                    example: 'sdfdssaom'
+                  category:
+                    type: string
+                    example: 'sdfdssaom'
+                  brand:
+                    type: string
+                    example: 'sdfdssaom'
+                  imgsrc:
+                    type: string
+                    example: 'sdfdssaom'
+                  prize:
+                    type: integer
+                    example: 2011
+        responses:
+          200:
+            description: 'success'
+          400: 
+            description: 'bad request'
+
+  /product/getall:
+    get:
+      tags:
+        - 'Product'
+      summary: get all product
+      description: get all roduct
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'
+
+  /product/getall/seller:
+    get:
+      tags:
+        - 'Product'
+      summary: get their product by seller
+      description: get all product by seller
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+      responses:
+        200:
+          description: 'success'
+
+  /product/get/cat/{category}:
+    get:
+      tags:
+        - 'Product'
+      summary: get all product by category
+      description: get all roduct by category
+      parameters:
+        - in: path
+          name: category
+          schema:
+            type: string
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'
+
+  /product/get/name/{name}:
+    get:
+      tags:
+        - 'Product'
+      summary: get all product by category
+      description: get all roduct by category
+      parameters:
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'
+
+  /product/get/{p_id}:
+    get:
+      tags: 
+      - 'Product'
+      summary: Get a user by ID
+      parameters:
+        - in: path
+          name: p_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'  
+
+  /product/updateproduct/{p_id}:
+    put:
+      tags: 
+      - 'Product'
+      summary: update product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: p_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              type: object
+              properties:
+                product_name:
+                  type: string
+                  example: 'asdfdsfd'
+                no_of_items:
+                  type: integer 
+                  example: 2011
+                title:
+                  type: string
+                  example: 'sdfdssaom'
+                description:
+                  type: string
+                  example: 'sdfdssaom'
+                category:
+                  type: string
+                  example: 'sdfdssaom'
+                brand:
+                  type: string
+                  example: 'sdfdssaom'
+                imgsrc:
+                  type: string
+                  example: 'sdfdssaom'
+                prize:
+                  type: integer
+                  example: 2011
+      responses:
+        200:
+          description: 'success'
+
+  /review/addnew/{p_id}:
+    post:
+      tags: 
+      - 'Review'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: p_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              type: object
+              properties:
+                comment:
+                  type: string
+                  example: 'asdfdsfd'
+                rating:
+                  type: integer 
+                  example: 2011
+      responses:
+        200:
+          description: 'success'
+
+
+
+    

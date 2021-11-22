@@ -7,7 +7,7 @@ const jwtauth = require('../middlewares/jwtauth')
 
 router.post('/new', [jwtauth, npValidator()], product.newProduct);
 router.put('/updateproduct/:p_id', [jwtauth, npValidator()], product.updateProduct);
-router.get('/getall', product.getAllProduct);
+router.get('/getall', product.getAllProduct);   
 router.get('/getall/seller', jwtauth, product.getAllProductBySeller);
 router.get('/get/:p_id', product.getProductbyID);
 router.get('/get/cat/:category', product.getAllProductByCategory);

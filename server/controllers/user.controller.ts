@@ -12,6 +12,8 @@ let user: any = {
     // @desc Register User
     // @access public
     createUser: async (req: Request, res: Response) =>{
+        console.log('req from client')
+        console.log(req.body)
         //req params check
         const errors = resultValidator(req)
             if(errors.length > 0){

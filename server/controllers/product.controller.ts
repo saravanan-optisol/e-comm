@@ -4,8 +4,6 @@ import Product from '../models/product.model'
 import bcrypt from 'bcryptjs'
 import  jwt  from 'jsonwebtoken'
 import config  from '../config/config'
-import { TimeoutError, where } from 'sequelize/types'
-import { pluralize } from 'sequelize/types/lib/utils'
 const {resultValidator} = require('../middlewares/validator')
 
 let product: any = {
@@ -52,6 +50,8 @@ let product: any = {
     // @desc update product
     // @access private
   updateProduct : async (req: Request, res:Response) =>{
+      console.log('u[sate')
+      console.log(req.params.p_id)
     //req params check
     const errors = resultValidator(req)
     if(errors.length > 0){
@@ -63,10 +63,10 @@ let product: any = {
         let product: any = await Product.findByPk(req.params.p_id);
 
         if(product === null){
-            failurehandler(res, req.method, 400, 'product not found')
+            return failurehandler(res, req.method, 400, 'product not found')
             //@ts-ignore
         }else if(product.seller_id !== req.user.user_id ){
-            failurehandler(res, req.method, 401, 'this product is not yours')
+            return failurehandler(res, req.method, 401, 'this product is not yours')
         }
 
         product = await Product.update({
@@ -87,7 +87,7 @@ let product: any = {
         successhandler(res, req.method, 201, 'product Updated')
     } catch (err) {
         console.log(err);
-        failurehandler(res, req.method, 500, 'server Error - ' + err)
+        return failurehandler(res, req.method, 500, 'server Error - ' + err)
     }
   },
 
@@ -105,10 +105,10 @@ let product: any = {
             } */
 
             let product = await Product.findAll();
-            successhandler(res, req.method, 200, product)
+            return successhandler(res, req.method, 200, product)
     } catch (err) {
         console.log(err);
-        failurehandler(res, req.method, 500, 'server Error - ' + err)
+        return failurehandler(res, req.method, 500, 'server Error - ' + err)
     }
 },
 

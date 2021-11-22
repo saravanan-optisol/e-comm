@@ -13,23 +13,6 @@ const config: any = {
         },
         mailid: 'verify.upi@gmail.com',
         mailpwd: 'upipwd01',
-        options : {
-            definition: {
-                openapi: '3.0.0',
-                info: {
-                    title: 'e-comm',
-                    version: '1.0.0',
-                    description: 'sldkfjiealkjf lakjsdij as lkjiasf'
-                },
-                servers: [
-                    {
-                        url: 'http://locahost:5000'
-                    }
-                ],
-            }, 
-            apis: ['app.ts']
-            // apis: ['../routes/*.ts']
-        }
     }
 }
 

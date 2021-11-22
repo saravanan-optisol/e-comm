@@ -1,13 +1,16 @@
 import { DataTypes, Model } from 'sequelize'
 import db from '../config/dbconnection'
+import Product from './product.model'
+import User from './user.model'
 
 interface reviewInterface {
     review_id?: number;
-    product_id: number,
-    user_id: number,
-    rating: number,
-    comment: string,
+    product_id?: number,
+    user_id?: number,
+    comment?: string,
+    rating?: number,
     is_delete?: number
+
 }
 
 export default class Review extends Model<reviewInterface> { }
@@ -18,27 +21,22 @@ Review.init({
     autoIncrement: true,
     primaryKey: true,
   },
-    product_id: {
-        type: DataTypes.NUMBER,
-        allowNull : false
-    },
-    user_id: {
-        type: DataTypes.NUMBER,
-        allowNull : false
-    },
-    rating: {
-        type: DataTypes.NUMBER,
-        allowNull : false
-    },
-    comment: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    is_delete: {
+  rating:{
       type: DataTypes.INTEGER,
-      defaultValue: 0
-    },
+      allowNull: false
+  },
+  comment:{
+      type: DataTypes.STRING,
+      allowNull: false
+  },
+  is_delete: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
 },{
     sequelize: db,
     tableName: 'reviews'
 })
+
+Product.belongsToMany(User, {through: Review, foreignKey: {name: 'product_id', allowNull: false}});
+User.belongsToMany(Product, {through: Review, foreignKey: {name: 'user_id', allowNull: false}});

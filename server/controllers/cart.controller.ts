@@ -54,7 +54,7 @@ let cart: any = {
     if(errors.length > 0){
         return failurehandler(res, req.method, 400, errors);
 }
-    const {p_id}: any = req.params
+    const {p_id} = req.params
     try {
         //@ts-ignore
         /* 
@@ -67,13 +67,14 @@ let cart: any = {
         if(cart === null){
             return failurehandler(res, req.method, 400, 'cart not exixts')
             //@ts-ignore
-        }else if(cart.user_id !== req.user.user_id){
+        }else if(cart.user_id != req.user.user_id){
             return failurehandler(res, req.method, 401, 'unautherized request');
         }
         
-        let product = cart.filter((cart: any) =>{ return cart.product_id === p_id })
-        if(product.length <= 0){
-            return failurehandler(res, req.method, 400, 'product not available')
+        console.log(typeof cart.product_id)
+        console.log(typeof req.params.p_id)
+        if(cart.product_id !== req.params.p_id){
+            return failurehandler(res, req.method, 400, 'product not found')
         }
 
         cart = await Cart.update({

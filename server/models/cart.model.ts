@@ -8,7 +8,7 @@ interface cartInterface {
     product_id?: number,
     user_id?: number,
     quantity: number,
-    isdelete?: number
+    is_delete?: number
 
 }
 
@@ -24,7 +24,7 @@ Cart.init({
       type: DataTypes.INTEGER,
       allowNull: false
   },
-  isdelete: {
+  is_delete: {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
