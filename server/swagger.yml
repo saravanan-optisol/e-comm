@@ -10,17 +10,17 @@ tags:
 - name: "User"
   description: "user account features"
   externalDocs:
-    description: "user amd seller can access this"
+    description: "user and seller can access their account"
     url: "http://localhost:5000/user"
 - name: "Product"
   description: "Product features"
   externalDocs:
-    description: "product routes"
+    description: "product Oprerations"
     url: "http://localhost:5000/product"
 - name: "Review"
   description: "Review features"
   externalDocs:
-    description: "product routes"
+    description: "review Operations"
     url: "http://localhost:5000/review"
 paths:
   /user/register:

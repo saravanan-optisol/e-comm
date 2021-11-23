@@ -3,6 +3,8 @@ import User from '../models/user.model'
 import Cart from '../models/cart.model'
 import Product from '../models/product.model'
 const {resultValidator} = require('../middlewares/validator')
+import Order from '../models/order.model'
+import OrderItem from '../models/order_item.model'
 
 let cart: any = {
   addNew : async (req: Request, res:Response) =>{

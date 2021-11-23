@@ -1,9 +1,8 @@
 import express, {Request, Response} from 'express'
 import User from '../models/user.model'
 import Product from '../models/product.model'
-import bcrypt from 'bcryptjs'
-import  jwt  from 'jsonwebtoken'
-import config  from '../config/config'
+import userQuery from '../dao/user.query'
+import productQuery from '../dao/product.query'
 const {resultValidator} = require('../middlewares/validator')
 
 let product: any = {
@@ -18,26 +17,18 @@ let product: any = {
         return failurehandler(res, req.method, 400, errors);
     }
     const {product_name, title, prize, brand, imgsrc, category, no_of_items, description} = req.body;
+
     try {
         //@ts-ignore
-        const seller = await User.findByPk(req.user.user_id);
+        const seller = await userQuery.findUser(req.user.user_id);
         if(seller === null){
             return failurehandler(res, req.method, 400, 'seller not found')
         }else if(seller.role_id !== 2){
             return failurehandler(res, req.method, 401, 'user did not have seller account')
         }
-        const product = await Product.create({
-            product_name: product_name,
-            title: title,
-            category: category,
-            prize: prize,
-            description: description,
-            imgsrc: imgsrc,
-            brand: brand,
-            //@ts-ignore
-            seller_id: req.user.user_id,
-            no_of_items: no_of_items
-        })
+        //@ts-ignore
+        const productData = {product_name, title, prize, brand, imgsrc, category, no_of_items, description, seller_id: req.user.user_id}
+        const product = await productQuery.newProduct(productData)
     
         successhandler(res, req.method, 201, product)
     } catch (err) {
@@ -50,8 +41,6 @@ let product: any = {
     // @desc update product
     // @access private
   updateProduct : async (req: Request, res:Response) =>{
-      console.log('u[sate')
-      console.log(req.params.p_id)
     //req params check
     const errors = resultValidator(req)
     if(errors.length > 0){
@@ -60,7 +49,7 @@ let product: any = {
 
     const {product_name, title, prize, brand, imgsrc, category, no_of_items, description} = req.body;
     try {
-        let product: any = await Product.findByPk(req.params.p_id);
+        let product= await productQuery.findProduct(req.params.p_id)
 
         if(product === null){
             return failurehandler(res, req.method, 400, 'product not found')
@@ -69,22 +58,9 @@ let product: any = {
             return failurehandler(res, req.method, 401, 'this product is not yours')
         }
 
-        product = await Product.update({
-            product_name: product_name,
-            title: title,
-            category: category,
-            prize: prize,
-            description: description,
-            imgsrc: imgsrc,
-            brand: brand,
-            no_of_items: no_of_items
-        }, {
-            where: {
-                //@ts-ignore
-                product_id: req.params.p_id
-            }
-        })
-        successhandler(res, req.method, 201, 'product Updated')
+        const productData = {product_name, title, prize, brand, imgsrc, category, no_of_items, description}
+        let updateproduct = await productQuery.updateProduct(req.params.p_id, productData)
+        successhandler(res, req.method, 201, updateproduct)
     } catch (err) {
         console.log(err);
         return failurehandler(res, req.method, 500, 'server Error - ' + err)
@@ -97,14 +73,10 @@ let product: any = {
     // @access public
   getAllProduct: async(req: Request, res: Response)=>{
     try {
-        //@ts-ignore
-/*         let user: any = await User.findByPk(req.user.user_id)
-
-            if(user === null){
-                return res.status(400).json({msg: 'user not exists'})
-            } */
-
-            let product = await Product.findAll();
+            const product = await productQuery.getAllProduct();
+            if(product.length <= 0){
+                failurehandler(res, req.method, 400, 'No Products in the store')
+            }
             return successhandler(res, req.method, 200, product)
     } catch (err) {
         console.log(err);
@@ -118,7 +90,7 @@ let product: any = {
 getAllProductBySeller: async(req: Request, res: Response)=>{
     try {
         //@ts-ignore
-        let user: any = await User.findByPk(req.user.user_id)
+        let user = await userQuery.findUser(req.user.user_id);
 
             if(user === null){
                 return failurehandler(res, req.method, 400, 'user not exists')
@@ -126,11 +98,8 @@ getAllProductBySeller: async(req: Request, res: Response)=>{
                 return failurehandler(res, req.method, 401, 'unautherized user')
             }
 
-            product = await Product.findAll({where: {
-                //@ts-ignore
-                seller_id: req.user.user_id
-            }});
-
+            //@ts-ignore
+            let product = await productQuery.getSellerProduct(req.user.user_id)
             if(product.length <= 0){
                 return failurehandler(res, req.method, 400, 'seller not yet upload any product')
             }
@@ -146,19 +115,11 @@ getAllProductBySeller: async(req: Request, res: Response)=>{
     // @access public
 getProductbyID: async(req: Request, res: Response)=>{
     try {
-        //@ts-ignore
-        /* let user: any = await User.findByPk(req.user.user_id)
-
-            if(user === null){
-                return failurehandler(res, req.method, 400, 'user not exists')
-            } */
-
-            product = await Product.findByPk(req.params.p_id);
-
-            if(product === null){
-                return failurehandler(res, req.method, 400, 'product not found')
-            }
-            successhandler(res, req.method, 200, product)
+        const product = await productQuery.findProduct(req.params.p_id);
+        if(product === null){
+           return failurehandler(res, req.method, 400, 'product not found')
+        }
+        successhandler(res, req.method, 200, product)
     } catch (err) {
         console.log(err);
         failurehandler(res, req.method, 500, 'server Error - ' + err)
@@ -170,23 +131,12 @@ getProductbyID: async(req: Request, res: Response)=>{
     // @access public
     getAllProductByCategory: async(req: Request, res: Response)=>{
         try {
-            //@ts-ignore
-            /* let user: any = await User.findByPk(req.user.user_id)
-    
-                if(user === null){
-                    return failurehandler(res, req.method, 400, 'user not exists')
-                } */
-    
-                product = await Product.findAll({where: {
-                    //@ts-ignore
-                    category: req.params.category
-                }});
+            const product = await productQuery.getProductByCatogory(req.params.category);
+            if(product.length <= 0){
+                return failurehandler(res, req.method, 400, 'product does not exists under this category')
+            }
 
-                if(product.length <= 0){
-                    return failurehandler(res, req.method, 400, 'product does not exists under this category')
-                }
-
-                successhandler(res, req.method, 200, product)
+            successhandler(res, req.method, 200, product)
         } catch (err) {
             console.log(err);
             failurehandler(res, req.method, 500, 'server Error - ' + err)
@@ -198,23 +148,12 @@ getProductbyID: async(req: Request, res: Response)=>{
     // @access public
     getAllProductByName: async(req: Request, res: Response)=>{
         try {
-            //@ts-ignore
-            /* let user: any = await User.findByPk(req.user.user_id)
-    
-                if(user === null){
-                    return failurehandler(res, req.method, 400, 'user not exists')
-                } */
-    
-                product = await Product.findAll({where: {
-                    //@ts-ignore
-                    product_name: req.params.name
-                }});
+            const product = await productQuery.getProductByName(req.params.name);
+            if(product.length <= 0){
+                return failurehandler(res, req.method, 400, 'product does not exists under this name')
+            }
 
-                if(product.length <= 0){
-                    return failurehandler(res, req.method, 400, 'product does not exists under this name')
-                }
-
-                successhandler(res, req.method, 200, product)
+            successhandler(res, req.method, 200, product)
         } catch (err) {
             console.log(err);
             failurehandler(res, req.method, 500, 'server Error - ' + err)

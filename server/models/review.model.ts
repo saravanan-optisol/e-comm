@@ -13,7 +13,8 @@ interface reviewInterface {
 
 }
 
-export default class Review extends Model<reviewInterface> { }
+export default class Review extends Model<reviewInterface> {
+}
 
 Review.init({
     review_id: {

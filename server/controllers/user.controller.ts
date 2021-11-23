@@ -6,14 +6,14 @@ import config  from '../config/config'
 const {resultValidator} = require('../middlewares/validator');
 import mail from '../services/mail'
 import db from '../config/dbconnection'
+import userQuery from '../dao/user.query'
 
 let user: any = {
     // @route POST user/register    
     // @desc Register User
     // @access public
     createUser: async (req: Request, res: Response) =>{
-        console.log('req from client')
-        console.log(req.body)
+
         //req params check
         const errors = resultValidator(req)
             if(errors.length > 0){
@@ -22,19 +22,21 @@ let user: any = {
         const {username, email, password, role_id} = req.body;
 
         try {
-            if(role_id === 0){
-                failurehandler(res, req.method, 401, 'you cannot create this type account')
+            //check role_id is admin role
+            if( role_id === 0){
+                return failurehandler(res, req.method, 401, 'you cannot create this type account')
             }
+
             //check the username exists
-            let checkusername = await User.findAll({ where:{ username: username }})
-            if(checkusername.length > 0){
-                return failurehandler(res, req.method, 400, 'username already exists');
+            let usercheck = await userQuery.checkUsernameExist(username);
+            if(usercheck){
+                return failurehandler(res, req.method, 400, usercheck)
             }
-            
+
             //check the email exists
-            let checkemail = await User.findAll({ where:{ email: email }})
-            if(checkemail.length > 0){
-                return failurehandler(res, req.method, 400, 'email already exists');
+            let emailcheck = await userQuery.checkEmailExist(email);
+            if(emailcheck){
+                return failurehandler(res, req.method, 400, emailcheck)
             }
             
             //password encrytion 
@@ -42,12 +44,7 @@ let user: any = {
             const pwd = await bcrypt.hash(password, salt);
 
             //user creation
-             const user = await User.create({
-                username,
-                email,
-                password: pwd,
-                role_id
-            })
+            const user = await userQuery.createUser(username, email, pwd, role_id);
             const payload: Object = {
                 user: {
                     user_id: user.user_id
@@ -77,8 +74,12 @@ let user: any = {
         try {
             //check the user by token
             //@ts-ignore
-            const user = await User.scope('withoutPassword').findByPk(req.user.user_id);
-          res.json(user);
+            const user = await userQuery.findUser(req.user.user_id)
+            if(user === null){
+                return failurehandler(res, req.method, 400, 'user not found')
+            }
+
+            successhandler(res, req.method, 200, user);
         } catch (err) {
             console.log(err);
             failurehandler(res, req.method, 500, 'server Error - ' + err)
@@ -92,11 +93,10 @@ let user: any = {
         try {
             //check the user exists'
         //@ts-ignore
-        const user = await User.scope('withoutPassword').findByPk(req.user.user_id);
-
-        if(user === null){
-            return res.status(400).json({msg: 'usern not exists'});
-        }
+        const user = await userQuery.findUser(req.user.user_id)
+            if(user === null){
+                return failurehandler(res, req.method, 400, 'user not found')
+            }
 
         const {username, email, address, mobile, } = req.body;
         let updateData = {
@@ -110,16 +110,11 @@ let user: any = {
         if (mobile) updateData.mobile = mobile;
         if (address) updateData.address = address;
 
-        console.log(updateData);
-        await User.update(updateData, {
-            where:{
-                //@ts-ignore
-                user_id: req.user.user_id
-            }
-        })
+        //@ts-ignore
+        await userQuery.updateUserProfile(req.user.user_id, updateData)
 
-        res.status(201).json({msg: 'updated'})
-        } catch (err) {
+        return successhandler(res, req.method, 201, 'Profile Updated');
+    } catch (err) {
             console.log(err);
             failurehandler(res, req.method, 500, 'server Error - ' + err)
         }
@@ -131,16 +126,19 @@ let user: any = {
     getAllUser: async(req: Request, res: Response)=>{
         try {
             //@ts-ignore
-            let user: any = await User.findByPk(req.user.user_id)
+            let user: any = userQuery.findUser(req.user.user_id);
 
             if(user === null){
-                return res.status(400).json({msg: 'user not exists'})
+                return failurehandler(res, req.method, 401, 'unautherized request')
             }else if(user.role_id !== 0){
-                return res.status(401).json({msg: 'user not allow for this task'})
+                return failurehandler(res, req.method, 401, 'forbinated')
             }
 
-            user = await User.scope('withoutPassword').findAll();
-            successhandler(res, req.method, 200, user)
+            let allUser = await userQuery.getAllUser();
+            if(allUser.length <= 0){
+                return successhandler(res, req.method, 200, 'user not exists')
+            }
+            successhandler(res, req.method, 200, allUser)
         } catch (err) {
             console.log(err);
             failurehandler(res, req.method, 500, 'server Error - ' + err)
@@ -153,41 +151,38 @@ let user: any = {
     forgotPassword: async(req: Request, res: Response) =>{
         //req params check
         const errors = resultValidator(req)
-        if(errors.length > 0){
-            return res.status(400).json({ 
-                method: req.method,
-                status: res.statusCode,
-                error: errors
-            });
+            if(errors.length > 0){
+                return failurehandler(res, req.method, 400, errors);
         }
         const {credential} = req.body;
 
         //check the credentials is username or email
-        let user: any;
-        if(credential.indexOf('@') === -1){
-            user = await User.scope('withoutPassword').findOne({ where: { username: credential },raw: true});
-        }else{
-            user = await User.scope('withoutPassword').findOne({ where: { email: credential },raw: true});
-        }
+        try {
+            let user: any;
+            if(credential.indexOf('@') === -1){
+                user = await userQuery.findByUsername(credential)
+            }else{
+                user = await userQuery.findByEmail(credential)
+            }
 
-        //if user not exists
-        if(user === null){
-            return res.status(400).json({msg: 'username of email not exists'}); 
-        }
+            //if user not exists
+            if(user === null){
+                return failurehandler(res, req.method, 400, 'username or email not found')
+            }
 
-        //generate the OTP
-        const uid =  user.user_id;
-        let OTP =  Math.floor(Math.random() * (9999 - 1111 + 1) ) + 1111;
+            //generate the OTP
+            const uid =  user.user_id;
+            let OTP =  Math.floor(Math.random() * (9999 - 1111 + 1) ) + 1111;
 
-        //Update the OTP to database
-        user = await User.update({otp: OTP}, {where: {user_id: uid}}).then(async () =>{
-            //invoke the email service
-            console.log(user.email)
+            //Update the OTP to database
+            const otpupdate = await userQuery.updateOTP(OTP, uid);
             const Mail = await mail.otpMail(user.email, OTP)
             
-            res.status(200).json({msg: 'otp sent to your registered email'});
-        })
-        .catch((err) =>{res.send('cha' + err)});
+            successhandler(res, req.method, 200, 'mail sent to your registered mail id')
+        } catch (err) {
+            console.log(err);
+            failurehandler(res, req.method, 500, 'server Error - ' + err)
+        }
             
     },
 
@@ -197,36 +192,30 @@ let user: any = {
     resetPassword: async (req: Request, res: Response) =>{
         //req params check
         const errors = resultValidator(req)
-        if(errors.length > 0){
-            return res.status(400).json({ 
-                method: req.method,
-                status: res.statusCode,
-                error: errors
-            });
-        }   
-
+            if(errors.length > 0){
+                return failurehandler(res, req.method, 400, errors);
+        }
         const {credential, otp, newpassword} = req.body;
-        let user;
-        
+    
         try {
-            //check the credentials
+            let user: any;
             if(credential.indexOf('@') === -1){
-                user = await User.scope('getOTP').findOne({ where: { username: credential },raw: true});
+                user = await userQuery.findByUsername(credential)
             }else{
-                user = await User.scope('getOTP').findOne({ where: { email: credential },raw: true});
+                user = await userQuery.findByEmail(credential)
             }
 
-            //check the user exists
+            //if user not exists
             if(user === null){
-                return res.status(400).json({msg: 'username of email not exists'}); 
+                return failurehandler(res, req.method, 400, 'username or email not found')
             }
             const dbOTP = user.otp;
             
             //check the user make a forgot password request or not
             if(dbOTP === null){
-                return res.status(400).json({msg: 'bad request'});
-            }
-            const uid: any = user.user_id
+                return failurehandler(res, req.method, 400, 'bad request')
+            }   
+            const uid= user.user_id
 
             //encrypt the password
             const salt = await bcrypt.genSalt(10);
@@ -234,15 +223,14 @@ let user: any = {
 
             //check the otp is correct or not
             if(dbOTP === otp){
-                 await User.update({password: pwd}, {where: {user_id: uid}});
-                 await User.update({otp: null}, {where: {user_id: uid}})
-
-                return res.status(201).json({msg: 'password changed'});
+                await userQuery.updatePassword(pwd, uid);
+                await userQuery.resetOTP(uid);
+                return successhandler(res, req.method, 200, 'password updated')        
             }
 
             //remove the otp from database
-            await User.update({otp: null}, {where: {user_id: uid}})
-            res.status(400).json({msg: 'otp not correct'});
+            await userQuery.resetOTP(uid);
+            failurehandler(res, req.method, 400, 'otp not correct')
         } catch (err) {
             console.log(err);
             failurehandler(res, req.method, 500, 'server Error - ' + err)

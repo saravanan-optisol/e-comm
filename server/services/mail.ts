@@ -2,8 +2,7 @@ import sm from 'nodemailer'
 import config from '../config/config'
 
 const mail = {
-    otpMail: (email: String, otp: Number)=>{
-console.log(config.mailid, config.mailpwd)
+    otpMail: async (email: String, otp: Number)=>{
         const transport = sm.createTransport({
             service: 'gmail',
             auth: {
@@ -21,13 +20,7 @@ console.log(config.mailid, config.mailpwd)
                 <p>${otp}</p>
             `
         }
-        transport.sendMail(msg, (err)=>{
-            if(err){
-                console.log('err')
-                throw err
-            };
-
-        })
+        await transport.sendMail(msg);
     },
 }
 
