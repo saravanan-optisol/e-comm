@@ -32,16 +32,12 @@ let review: any = {
             }
 
             //@ts-ignore
-            const review = await reviewQuery.getUserReview(user_id);
-            if(review.length > 0){
-                review.forEach((review: any) => {
-                    console.log(review.product_id);
-                    if(review.product_id == p_id){
-                        console.log('if')
-                        return failurehandler(res, req.method, 400, 'user already review this product');
-                    }
-                })
+            const review = await reviewQuery.getReview(user_id, p_id);
+            if(review){
+                console.log(review)
+                return failurehandler(res, req.method, 400, 'user already review this product')
             }
+            
             console.log('after')
             const reviewData = {user_id, product_id: p_id, comment, rating}
             const addreview = await reviewQuery.addReview(reviewData); 
@@ -51,6 +47,25 @@ let review: any = {
             failurehandler(res, req.method, 500, 'server Error - ' + err)
         }
       },
+
+      getAllProductReviews: async (req: Request, res: Response) =>{
+          try {
+              const product = await productQuery.findProduct(req.params.p_id);
+              if(product === null){
+                  return failurehandler(res, req.method, 400, 'product not found');
+              }
+
+              const reviews = await reviewQuery.getProductReviews(req.params.p_id);
+              if(reviews.length <= 0){
+                  return successhandler(res, req.method, 200, 'this product does not have any review yet')
+              }
+
+              successhandler(res, req.method, 200, reviews)
+          } catch (err) {
+            console.log(err);
+            failurehandler(res, req.method, 500, 'server Error - ' + err)
+          }
+      }
 }
 let successhandler = (res: Response, method: String, statusCode: any, data: any) =>{
     console.log('success')

@@ -11,8 +11,18 @@ let reviewQuery = {
         return review;
     },
 
+    getReview: async (user_id: any, product_id: any) =>{
+        const review = await Review.findOne({ where: {user_id, product_id}})
+        return review;
+    },
+
     addReview: async (reviewData: object) =>{
         const review = await Review.create(reviewData);
+    },
+
+    getProductReviews: async (product_id: any) =>{
+        const reviews = await Review.findAll({ where: {product_id}});
+        return reviews;
     }
 }
 

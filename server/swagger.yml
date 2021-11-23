@@ -407,6 +407,24 @@ paths:
         200:
           description: 'success'
 
+  /review/getall/{p_id}:
+    get:
+      tags: 
+      - 'Review'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - in: path
+          name: p_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+    
+
 
 
     
