@@ -2,14 +2,14 @@ import User from '../models/user.model'
 
 let userQuery = {
 
-    checkUsernameExist: async (userName: string)=>{
+    checkUsernameExist: async (userName: string) =>{
         let checkusername = await User.findAll({ where:{ username: userName }})
             if(checkusername.length > 0){
                 return 'username already exists'
             }
     },
 
-    checkEmailExist: async (Email: string)=>{
+    checkEmailExist: async (Email: string) =>{
         let checkemail = await User.findAll({ where:{ email: Email }})
             if(checkemail.length > 0){
                 return 'email already exists'
@@ -26,12 +26,17 @@ let userQuery = {
         return user;
     },
 
-    findUser: async (user_id: any)=>{
+    findUser: async (user_id: any) =>{
         const user = await User.scope('withoutPassword').findByPk(user_id);
         return user;
     },
 
-    updateUserProfile: async (user_id: any, updateData: object)=>{
+    findUserWithPwd: async (user_id: any) =>{
+        const user = await User.findByPk(user_id);
+        return user;
+    },
+
+    updateUserProfile: async (user_id: any, updateData: object) =>{
         await User.update(updateData, {
             where:{
                 //@ts-ignore
@@ -55,7 +60,7 @@ let userQuery = {
         return user;
     },
 
-    updateOTP: async (OTP: number, uid: any)=>{
+    updateOTP: async (OTP: number, uid: any) =>{
         await User.update({otp: OTP}, {where: {user_id: uid}})
     },
 
@@ -63,8 +68,12 @@ let userQuery = {
         await User.update({otp: null}, {where: {user_id: uid}})
     },
 
-    updatePassword: async (pwd:string, uid: any)=>{
+    updatePassword: async (pwd:string, uid: any) =>{
         await User.update({password: pwd}, {where: {user_id: uid}});
+    },
+
+    deleteAccount: async (user_id: any) =>{
+        await User.destroy({ where: { user_id }})
     }
 
 }

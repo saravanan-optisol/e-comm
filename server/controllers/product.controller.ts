@@ -159,6 +159,32 @@ getProductbyID: async(req: Request, res: Response)=>{
             failurehandler(res, req.method, 500, 'server Error - ' + err)
         }
     },
+
+    deleteProduct: async (req: Request, res: Response) =>{
+        //@ts-ignore
+        const {user_id} = req.user
+        const {p_id} = req.params
+        try {
+            const user = await userQuery.findUser(user_id)
+            if(user === null){
+                return failurehandler(res, req.method, 401, 'unautherized user');
+            }
+
+            const product = await productQuery.findProduct(p_id);
+            if(product === null){
+               return failurehandler(res, req.method, 400, 'product not found')
+            }else if(product.seller_id !== user_id){
+                return failurehandler(res, req.method, 400, 'This is not your product')
+            }
+    
+            const productDelete = await productQuery.deleteProduct(p_id);
+            successhandler(res, req.method, 200, 'product deleted')
+        } catch (err) {
+            console.log(err);
+            failurehandler(res, req.method, 500, 'server Error - ' + err)
+        }
+
+    }
 }
 
 let successhandler = (res: Response, method: String, statusCode: any, data: any) =>{

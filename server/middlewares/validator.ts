@@ -47,6 +47,13 @@ exports.rpValidator = () =>{
     ]
 }
 
+// delete Account Validator
+exports.daValidator = () =>{
+    return[
+        check('password', 'enter valid password').isLength({min: 6})
+    ]
+}
+
 // Create Product validator
 exports.npValidator = () =>{
     return[
@@ -73,5 +80,13 @@ exports.reviewValidator = () =>{
     return[
         check('rating', 'credential is required').not().isEmpty(),
         check('comment', 'new password is required').not(),
+    ]
+}
+
+// make new order 
+exports.noValidator = () =>{
+    return[
+        check('product_id', 'product_id is required').not().isEmpty(),
+        check('quantity', 'quantity password is required').not().isEmpty(),
     ]
 }

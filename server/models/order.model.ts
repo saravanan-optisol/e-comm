@@ -7,7 +7,8 @@ import Product from './product.model'
 interface orderInterface {
     order_id?: number;
     user_id?: number,
-    status?: string,
+    status?: number,
+    no_of_items?: number,
     is_delete?: number
 }
 
@@ -20,8 +21,12 @@ Order.init({
     primaryKey: true,
   },
     status:{
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false
+  },
+  no_of_items:{
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   is_delete: {
     type: DataTypes.INTEGER,

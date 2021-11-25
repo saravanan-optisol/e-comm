@@ -17,4 +17,5 @@ module.exports = (app: any, config: any) =>{
     app.use('/product', require('../routes/product'));
     app.use('/cart', require('../routes/cart'));
     app.use('/review', require('../routes/review'));
+    app.use('/order', require('../routes/order'));
 }

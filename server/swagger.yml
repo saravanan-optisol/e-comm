@@ -22,6 +22,7 @@ tags:
   externalDocs:
     description: "review Operations"
     url: "http://localhost:5000/review"
+
 paths:
   /user/register:
     post:
@@ -52,6 +53,7 @@ paths:
           description: 'success'
         400: 
           description: 'bad request'
+
   /auth/login:
     post:
       tags:
@@ -189,6 +191,33 @@ paths:
           description: 'success'
         400: 
           description: 'bad request' 
+
+  /user/delete:
+    delete:
+      tags: 
+      - 'User'
+      summary: Get a user by ID
+      description: 'get user Details by token' 
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: 'dsafsdesd'
+      responses:
+        200:
+          description: 'success'
+        400: 
+          description: 'bad request'  
 
   /product/new:
       post:
@@ -373,6 +402,27 @@ paths:
         200:
           description: 'success'
 
+  /product/delete/{p_id}:
+    delete:
+      tags: 
+      - 'Product'
+      summary: update product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: p_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+
   /review/addnew/{p_id}:
     post:
       tags: 
@@ -414,6 +464,11 @@ paths:
       summary: add review to the product
       description: add description to the product
       parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
         - in: path
           name: p_id
           schema:
@@ -423,7 +478,239 @@ paths:
       responses:
         200:
           description: 'success'
-    
+
+  /review/remove/{r_id}:
+    delete:
+      tags: 
+      - 'Review'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: r_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+
+  /cart/addnew/{p_id}:
+    post:
+      tags: 
+      - 'Cart'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: p_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+
+  /cart/update/{reqtype}/{c_id}/{p_id}:
+    put:
+      tags: 
+      - 'Cart'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: p_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+        - in: path
+          name: c_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+        - in: path
+          name: reqtype
+          schema:
+            type: string
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+
+  /cart/delete/{c_id}/{p_id}:
+    delete:
+      tags: 
+      - 'Cart'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: c_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+        - in: path
+          name: p_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+
+  /order/neworder:
+    post:
+      tags: 
+      - 'Order'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              type: object
+              properties:
+                product_id:
+                  type: string
+                  example: 'asdfdsfd'
+                quantity:
+                  type: number
+                  example: 3
+      responses:
+        200:
+          description: 'success'
+
+  /order/getorder:
+    get:
+      tags: 
+      - 'Order'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+      responses:
+        200:
+          description: 'success'
+
+  /order/getordereditems/{o_id}:
+    get:
+      tags: 
+      - 'Order'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: o_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+
+  /order/trackorder/{o_id}:
+    get:
+      tags: 
+      - 'Order'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - in: path
+          name: o_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+
+  /order/updatetrack/{o_id}:
+    put:
+      tags: 
+      - 'Order'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: o_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
+
+  /order/cancel/{o_id}:
+    delete:
+      tags: 
+      - 'Order'
+      summary: add review to the product
+      description: add description to the product
+      parameters:
+        - name: x-auth-token
+          in: header
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: o_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user to get
+      responses:
+        200:
+          description: 'success'
 
 
 

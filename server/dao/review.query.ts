@@ -16,6 +16,11 @@ let reviewQuery = {
         return review;
     },
 
+    getReviewById: async (review_id: any) =>{
+        const review = await Review.findByPk(review_id)
+        return review;
+    },
+
     addReview: async (reviewData: object) =>{
         const review = await Review.create(reviewData);
     },
@@ -23,6 +28,10 @@ let reviewQuery = {
     getProductReviews: async (product_id: any) =>{
         const reviews = await Review.findAll({ where: {product_id}});
         return reviews;
+    },
+
+    deleteReview: async (review_id: any) =>{
+        const review = await Review.destroy({where: {review_id}});
     }
 }
 

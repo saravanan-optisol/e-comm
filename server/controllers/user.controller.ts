@@ -91,12 +91,15 @@ let user: any = {
     // @access public
     updateProfile: async (req: Request, res: Response) =>{
         try {
+            console.log('update')
             //check the user exists'
         //@ts-ignore
         const user = await userQuery.findUser(req.user.user_id)
             if(user === null){
                 return failurehandler(res, req.method, 400, 'user not found')
             }
+
+            console.log(user)
 
         const {username, email, address, mobile, } = req.body;
         let updateData = {
@@ -112,6 +115,7 @@ let user: any = {
 
         //@ts-ignore
         await userQuery.updateUserProfile(req.user.user_id, updateData)
+        console.log('after')
 
         return successhandler(res, req.method, 201, 'Profile Updated');
     } catch (err) {
@@ -237,6 +241,30 @@ let user: any = {
         }
 
     },
+
+    deleteAccount: async (req: Request, res: Response) =>{
+        //@ts-ignore
+        const {user_id} = req.user
+        const {password} = req.body
+        try {
+            let user = await userQuery.findUserWithPwd(user_id)
+            if(user === null){
+                return failurehandler(res, req.method, 401, 'unautherized user');
+            }
+
+            const pwd = user.password;
+            const isMatch = await bcrypt.compare(password, pwd.toString());
+            if (!isMatch) {
+              return failurehandler(res, req.method, 400, 'invalid credentials')
+            }
+
+            const deleteAcc = await userQuery.deleteAccount(user_id);
+            successhandler(res, req.method, 200, 'Account Deleted')
+        } catch (err) {
+            console.log(err);
+            failurehandler(res, req.method, 500, 'server Error - ' + err)
+        }
+    }
 }
 
 

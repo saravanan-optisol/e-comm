@@ -12,5 +12,6 @@ router.get('/getall/seller', jwtauth, product.getAllProductBySeller);
 router.get('/get/:p_id', product.getProductbyID);
 router.get('/get/cat/:category', product.getAllProductByCategory);
 router.get('/get/name/:name', product.getAllProductByName);
+router.get('/delete/:p_id', jwtauth, product.getAllProductBySeller);
 
 module.exports = router;

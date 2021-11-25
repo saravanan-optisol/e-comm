@@ -1,10 +1,10 @@
 import express, {Request, Response} from 'express'
-import User from '../models/user.model'
 import Cart from '../models/cart.model'
-import Product from '../models/product.model'
 const {resultValidator} = require('../middlewares/validator')
-import Order from '../models/order.model'
-import OrderItem from '../models/order_item.model'
+import userQuery from '../dao/user.query'
+import productQuery from '../dao/product.query'
+import db from '../config/dbconnection'
+import cartQuery from '../dao/cart.query'
 
 let cart: any = {
   addNew : async (req: Request, res:Response) =>{
@@ -12,39 +12,42 @@ let cart: any = {
     const errors = resultValidator(req)
     if(errors.length > 0){
         return failurehandler(res, req.method, 400, errors);
-}
+    }
+
+    let t = await db.transaction();
+    //@ts-ignore
+    const {user_id} = req.user
     const {p_id}: any = req.params
     try {
-        //@ts-ignore
-        let user = await User.findByPk(req.user.user_id);
+        let user = await userQuery.findUser(user_id);
         if(user === null){
             return failurehandler(res, req.method, 401, 'unautherized request');
-        }
-        let product = await Product.findByPk(p_id);
+        }        
+
+        let product = await productQuery.findProduct(p_id)
         if(product === null){
-            return failurehandler(res, req.method, 400, 'product not found')
-        }else if(product.no_of_items <= 0){
-            return failurehandler(res, req.method, 400, 'currentlly unavailable')
-        }else if(product.no_of_items < req.body.quantity){
-            return failurehandler(res, req.method, 400, `only ${product.no_of_items} stocks available`);
+            return failurehandler(res, req.method, 400, 'product not found');
         }
 
-        const cart = await Cart.create({
-            //@ts-ignore
-            user_id: req.user.user_id,
-            product_id: p_id,
-            quantity: req.body.quantity
-        })
-    
-        await Product.update({ 
-            no_of_items: product.no_of_items - req.body.quantity
-        },{
-            where: {
-                product_id: p_id
-            }
-        })
+        let checkExists = await cartQuery.checkExists(user_id, p_id);
+        if(checkExists !== null){
+            return failurehandler(res, req.method, 400, 'product already available in the cart')
+        }
+
+        let productQuantity = product.no_of_items;
+        if(productQuantity <= 0){
+            return failurehandler(res, req.method , 400, 'product currently not available')
+        }
+
+        const cartData = {user_id, product_id:p_id, quantity: 1}
+        const cart = await cartQuery.addNew(cartData, t);
+        const value: number = productQuantity - 1;
+        const reduceQuantity = await productQuery.updateProductQuantity(p_id, value, t);
+
+        await t.commit();
         successhandler(res, req.method, 201, 'Product added to your cart');
     } catch (err) {
+        t.rollback();
         console.log(err);
         failurehandler(res, req.method, 500, 'server Error - ' + err)
     }
@@ -55,43 +58,94 @@ let cart: any = {
     const errors = resultValidator(req)
     if(errors.length > 0){
         return failurehandler(res, req.method, 400, errors);
-}
-    const {p_id} = req.params
+    }
+    const t = await db.transaction();
+    //@ts-ignore
+    const {user_id} = req.user
+    const {reqtype, c_id, p_id} = req.params
+
     try {
-        //@ts-ignore
-        /* 
-        let user = await User.findByPk(req.user.user_id);
+        let user = await userQuery.findUser(user_id);
         if(user === null){
             return failurehandler(res, req.method, 401, 'unautherized request');
-        } */
+        } 
 
-        let cart: any = await Cart.findByPk(req.params.c_id);
-        if(cart === null){
-            return failurehandler(res, req.method, 400, 'cart not exixts')
-            //@ts-ignore
-        }else if(cart.user_id != req.user.user_id){
-            return failurehandler(res, req.method, 401, 'unautherized request');
-        }
-        
-        console.log(typeof cart.product_id)
-        console.log(typeof req.params.p_id)
-        if(cart.product_id !== req.params.p_id){
-            return failurehandler(res, req.method, 400, 'product not found')
+        let checkExists: any = await cartQuery.checkExists(c_id, p_id);
+        if(checkExists === null){
+            return failurehandler(res, req.method, 400, 'product not there in your cart')
+        }else if(checkExists.user_id !== user_id){
+            return failurehandler(res, req.method, 401, 'unautherized request')
         }
 
-        cart = await Cart.update({
-            quantity: req.body.quantity
-        },{
-            where:{
-                product_id: p_id
-            }
-        })
-    
-        successhandler(res, req.method, 201, 'Product updated');
+        let product = await productQuery.findProduct(p_id)
+        if(product === null){
+            return failurehandler(res, req.method, 400, 'product not found');
+        }
+
+        let productQuantity = product.no_of_items;
+        let updateQuantity: any;
+        if(reqtype === 'inc'){
+            updateQuantity = checkExists.quantity + 1;
+            if(productQuantity <= 0){
+            return failurehandler(res, req.method , 400, 'product currently not available')
+        }
+
+        const value: number = productQuantity - 1;
+        const reduceQuantity = await productQuery.updateProductQuantity(p_id, value, t);
+        const upatecart = await cartQuery.updateProductQuantity(c_id, updateQuantity, t);
+
+        t.commit();
+        return successhandler(res, req.method, 200, 'updated')
+        }else if(reqtype === 'dec'){
+            updateQuantity = checkExists.quantity - 1;
+
+            const value: number = productQuantity + 1;
+        const increaseQuantity = await productQuery.updateProductQuantity(p_id, value, t);
+        const upatecart = await cartQuery.updateProductQuantity(c_id, updateQuantity, t);
+
+        t.commit()
+        return successhandler(res, req.method, 200, 'updated')
+        }
     } catch (err) {
         console.log(err);
         failurehandler(res, req.method, 500, 'server Error - ' + err)
     }
+  },
+
+  removeCartProduct: async (req: Request, res: Response) =>{
+    //@ts-ignore
+    const {user_id} = req.user
+    const {c_id, p_id} = req.params
+    const t  = await db.transaction();
+      try {
+        const user = await userQuery.findUser(user_id)
+        if(user === null){
+            return failurehandler(res, req.method, 401, 'unautherized user');
+        }
+
+        const checkExists: any = await cartQuery.checkExists(c_id, p_id);
+        if(checkExists === null){
+            return failurehandler(res, req.method, 400, 'cart or product not found')
+        }else if(checkExists.user_id !== user_id){
+            return failurehandler(res, req.method, 400, 'unautherized')
+        }
+        
+        let product = await productQuery.findProduct(p_id)
+        if(product === null){
+            return failurehandler(res, req.method, 400, 'product not found');
+        }
+
+        let productQuantity = product.no_of_items;
+        const value: number = productQuantity + checkExists.quantity;
+        const increaseQuantity = await productQuery.updateProductQuantity(p_id, value, t);
+        const deletecart = await cartQuery.removeProduct(c_id, t);
+
+        t.commit();
+        successhandler(res, req.method, 200, 'Product removed from cart');
+      } catch (err) {
+        console.log(err);
+        failurehandler(res, req.method, 500, 'server Error - ' + err)
+      }
   }
 }
 

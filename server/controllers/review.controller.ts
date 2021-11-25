@@ -65,6 +65,31 @@ let review: any = {
             console.log(err);
             failurehandler(res, req.method, 500, 'server Error - ' + err)
           }
+      },
+
+      removeReview: async (req: Request, res: Response) =>{
+        //@ts-ignore
+        const {user_id} = req.user
+        const {r_id} = req.params
+          try {
+            const user = await userQuery.findUser(user_id)
+            if(user === null){
+                return failurehandler(res, req.method, 401, 'unautherized user');
+            }
+
+            let review: any = await reviewQuery.getReviewById(r_id);
+            if(review === null){
+                return failurehandler(res, req.method, 400, 'review not found')
+            }else if(review.user_id !== user_id){
+                return failurehandler(res, req.method, 400, 'this review is not yours')
+            }
+
+            const reviewDelete = await reviewQuery.deleteReview(r_id)
+            successhandler(res, req.method, 200, 'review Deleted')
+          } catch (err) {
+            console.log(err);
+            failurehandler(res, req.method, 500, 'server Error - ' + err)
+          }
       }
 }
 let successhandler = (res: Response, method: String, statusCode: any, data: any) =>{

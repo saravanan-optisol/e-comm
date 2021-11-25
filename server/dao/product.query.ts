@@ -1,4 +1,3 @@
-import product from '../controllers/product.controller';
 import Product from '../models/product.model'
 
 let productQuery = {
@@ -35,6 +34,21 @@ let productQuery = {
     getProductByName: async (name: string) =>{
         let product = await Product.findAll({ where: { product_name: name }});
         return product;
+    },
+
+    checkProductQuantity: async (product_id: any) =>{
+        let product: any = await Product.findByPk(product_id);
+        return product.quantity;
+    },
+
+    updateProductQuantity: async (product_id: any, value: any, t: any) =>{
+        console.log('5')
+        //@ts-ignore
+        let product = await Product.update({ no_of_items: value}, {where: { product_id }}, {transaction: t})
+    },
+
+    deleteProduct: async (product_id: any) =>{
+        const product  = await Product.destroy({ where: { product_id }})
     }
 }
 
